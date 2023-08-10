@@ -51,96 +51,7 @@ Redis Cluster is a distributed solution for Redis. It uses a sharding mechanism 
 In conclusion, both Redis Sentinels and Redis Cluster are viable options for deploying Redis on Kubernetes for business applications.  
 Redis Sentinels provides automatic failover and easy setup, while Redis Cluster provides high scalability and fault tolerance.  
 The choice between the two approaches will depend on the specific needs and requirements of your application. When setting up either Redis Sentinels or Redis Cluster on Kubernetes, it's important to follow the appropriate steps and configurations to ensure a successful deployment.
-----
-
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: prometheus-config
-  namespace: monitoring
-data:
-  prometheus.yml: |
-    global:
-      scrape_interval: 15s
-
-    scrape_configs:
-      - job_name: 'blackbox'
-        metrics_path: /probe
-        params:
-          module: [http_2xx]
-        static_configs:
-          - targets:
-            - http://your-app-service-name.namespace.svc.cluster.local/blackbox-exporter/probe
-          relabel_configs:
-            - source_labels: [__address__]
-              target_label: __param_target
-            - source_labels: [__param_target]
-              target_label: instance
-            - target_label: __address__
-              replacement: blackbox-exporter.namespace.svc.cluster.local:9115
-
-      - job_name: 'rabbitmq'
-        static_configs:
-          - targets:
-            - your-rmq-service-name.namespace.svc.cluster.local:15692  # Adjust port
-
-      - job_name: 'postgres'
-        static_configs:
-          - targets:
-            - your-postgres-service-name.namespace.svc.cluster.local:9187  # Adjust port
-
 ---
-
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: prometheus
-  namespace: monitoring
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: prometheus
-  template:
-    metadata:
-      labels:
-        app: prometheus
-    spec:
-      containers:
-        - name: prometheus
-          image: prom/prometheus:v2.34.0
-          args:
-            - "--config.file=/etc/prometheus/prometheus.yml"
-            - "--storage.tsdb.path=/prometheus"
-          ports:
-            - containerPort: 9090
-          volumeMounts:
-            - name: prometheus-config
-              mountPath: /etc/prometheus
-            - name: prometheus-storage
-              mountPath: /prometheus
-      volumes:
-        - name: prometheus-config
-          configMap:
-            name: prometheus-config
-        - name: prometheus-storage
-          emptyDir: {}
-
-----
-
-apiVersion: v1
-kind: Service
-metadata:
-  name: prometheus
-  namespace: monitoring
-spec:
-  selector:
-    app: prometheus
-  ports:
-    - protocol: TCP
-      port: 9090
-
-----
 
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -159,8 +70,5 @@ spec:
                 name: prometheus
                 port:
                   number: 9090
-
----
-
 
 
