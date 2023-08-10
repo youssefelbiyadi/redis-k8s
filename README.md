@@ -53,6 +53,7 @@ Redis Sentinels provides automatic failover and easy setup, while Redis Cluster 
 The choice between the two approaches will depend on the specific needs and requirements of your application. When setting up either Redis Sentinels or Redis Cluster on Kubernetes, it's important to follow the appropriate steps and configurations to ensure a successful deployment.
 ---
 
+´´´yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -71,4 +72,4 @@ spec:
                 port:
                   number: 9090
 
-
+´´´
